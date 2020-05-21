@@ -1,0 +1,19 @@
+{
+  "name": "nodejs",
+  "version": "1.0.0",
+  "description": "Examples of how to use the Ascend Stream API",
+  "scripts": {
+    "start-amqp": "node example-amqp.js",
+    "start-stomp": "node example-stomp.js"
+  },
+  "author": "Bart Wood",
+  "license": "ISC",
+  "dependencies": {
+    "amqplib": "^0.5.6",
+    "axios": "^0.19.2",
+    "config": "^3.3.1",
+    "express": "^4.17.1",
+    "lodash": "^4.17.15",
+    "qs": "^6.9.4"
+  }
+}
