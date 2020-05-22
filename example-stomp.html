@@ -7,9 +7,11 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">    
     <link rel="stylesheet" href="libs/jsonview.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.2/axios.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.9.4/qs.min.js"></script>
-    <script src="libs/stomp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.9.4/qs.min.js"></script>    
     <script src="libs/jsonview.js"></script>
+
+    <!-- There are a few options to run stomp in a browser.  This libary is old but simple and reliable -->
+    <script src="libs/stomp.min.js"></script>
 
     <style>
       .message {
@@ -151,9 +153,9 @@
         client.connect(stompConfig.user, '', onConnect, onError, stompConfig['virtual-host']);
 
         // Debugging all stomp messages is noisy but sometimes very useful
-        // client.debug = (str) => {
-        //   console.log('Stomp debug', str);
-        // };
+        client.debug = (str) => {
+          // console.log('Stomp debug', str);
+        };
       }
       catch(err){
         console.error(err);
