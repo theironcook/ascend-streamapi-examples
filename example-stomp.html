@@ -32,6 +32,17 @@
   <script>    
     // Important stuff starts in the connect function - top code is unimportant formatting
 
+    function onloaded(){
+      // Just tired of typing these in each time
+      if(localStorage.getItem('client_id')){
+        document.getElementById('client_id').value = localStorage.getItem('client_id');
+      }
+
+      if(localStorage.getItem('client_secret')){
+        document.getElementById('client_secret').value = localStorage.getItem('client_secret');
+      }
+    }
+
     const randomString = () => {
       return Math.random().toString().substring(3, 10);
     };
@@ -105,6 +116,10 @@
         return;
       }
 
+      // store what the user entered just for convenience - I get tired of typing the values each time
+      localStorage.setItem('client_id', client_id);
+      localStorage.setItem('client_secret', client_secret);
+
       try {        
         // Get the stomp login information from the Ascend API.
         // Normally you would never expose the client_id and client_secret to a browser.
@@ -166,7 +181,7 @@
   </script>
 
 
-  <body style="font-family: Roboto;">
+  <body style="font-family: Roboto;" onload="onloaded()">
 
     <div style="margin:25px;">       
       <div class="field is-horizontal" style="margin-top: 20px;">
@@ -176,7 +191,7 @@
         <div class="field-body">
           <div class="field">
             <p class="control">
-              <input class="input is-primary" id="client_id" type="text" value="kGiDndgaCNEp6fpXnJRqGpioM5uT6oxm">
+              <input class="input is-primary" id="client_id" type="text" placeholder="Enter your client_id">
             </p>
           </div>
         </div>
@@ -189,7 +204,7 @@
         <div class="field-body">
           <div class="field">
             <p class="control">
-              <input class="input is-primary" id="client_secret" type="text" value="DM3RKwfZQZctnbGb">
+              <input class="input is-primary" id="client_secret" type="text" placeholder="Enter your client_secret">
             </p>
           </div>
         </div>

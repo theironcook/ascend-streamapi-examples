@@ -26,7 +26,7 @@ Look at the source code in example-amqp.js to follow along with how to use the s
 To run the Stomp example that runs in a browser run:
 > npm run start-stomp
 
-Most of the source code for the stomp example can be found in example-stomp.html.
+Most of the source code for the stomp example can be found in example-stomp.js and example-stomp.html.
 To see the example running open a browser at http://localhost:3039 (assuming that port was open on your computer)
 
-Make sure to open the console to see useful errors / messages as the example runs
+Make sure to open the browser console to see useful errors / messages as the example runs

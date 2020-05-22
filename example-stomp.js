@@ -10,10 +10,10 @@ app.get('/', (req, res) => res.redirect('example-stomp.html'));
 
 
 // sandbox and prod
-//const baseUrl = 'https://prod.hs1api.com';
-
+// const baseUrl = 'https://prod.hs1api.com';
 // qa
 const baseUrl = 'https://test.hs1api.com';
+
 const apiTokenUrl = `${baseUrl}/oauth/client_credential/accesstoken`;
 
 
