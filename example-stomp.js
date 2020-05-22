@@ -43,6 +43,7 @@ app.get('/stomp-creds', async (req, res, next) => {
     return res.json(data);
   }
   catch(err){
+    console.error(err);
     return next(err);
   }
 });

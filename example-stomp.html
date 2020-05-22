@@ -34,67 +34,6 @@
       return Math.random().toString().substring(3, 10);
     };
 
-
-    // Use fake data until Jeff fixes the stomp network issues
-    function appendFakeData(){
-      const message =  {
-        "messageType":"DataChange",
-        "applicationId":"6777b71e-e631-4167-8177-b1913e0467de",
-        "clientName":"dorian-qa",
-        "type":"Patient",
-        "id":"1000001743001",
-        "operation":"CREATE",
-        "payload":{
-          "type":"Patient",
-          "dateOfBirth":"1985-05-29",
-          "contactMethod":"EMAIL ME",
-          "languageType":"ENGLISH",
-          "lastModified":"2020-05-21T18:47:10.514Z",
-          "patientEmail":"1@RandomEmailz.com",
-          "primaryContact": {
-            "id":"1000001743001",
-            "type":"Patient",
-            "url":"https://test.hs1api.com/ascend-gateway/api/v0/patients/1000001743001"
-          },
-          "primaryGuarantor": { 
-            "id":"1000001743001",
-            "type":"Patient",
-            "url":"https://test.hs1api.com/ascend-gateway/api/v0/patients/1000001743001"
-          },
-          "id":"1000001743001",
-          "title":"Title",
-          "firstName":"Dorian",
-          "middleName":"Taylor",
-          "lastName":"Glanville",
-          "preferredName":"Random Name",
-          "gender":"M",
-          "chartNumber":"yabadabb",
-          "patientStatus":"ACTIVE",
-          "preferredLocation": {
-            "id":"1000000001027",
-            "type":"Location",
-            "url":"https://test.hs1api.com/ascend-gateway/api/v0/locations/1000000001027"
-          },
-          "patientAddress": { 
-            "type":"Address",
-            "id":"1000001754132",
-            "address1":"Address 1",
-            "address2":"Address 2",
-            "city":"American Fork",
-            "postalCode":"84663",
-            "state":"UT"
-          },
-          "phones": [ 
-            {"sequence":1,"type":"Phone","id":"1000002313570","number":"8014274420","phoneType":"MOBILE"}
-          ]},
-          "transactionId":"f153c1d4-7555-4094-b9ee-2a0c119e98ed",
-          "correlationId":"f153c1d4-7555-4094-b9ee-2a0c119e98ed",
-          "sendTime":1590086830515 - (24 * 60 * 60 * 1000)
-      };
-
-      appendStreamAPIMessage(12345, message);
-    };
-
     function appendConnectedMessage(){
       const template = `
         <div class="message">
@@ -110,11 +49,19 @@
 
     let messageCount = 0;
 
-    function appendStreamAPIMessage(locationId, message){
+    function appendStreamAPIMessage(message){
+      // Pull out the routing key from the stomp mesage
+      const destination = message.headers.destination;
+      const [organizationId, locationId, domainType, operation] = destination.substring(destination.lastIndexOf('/')+1).split('.');
+      // Some fields like operation and domainType are also found in the payload as well as the stomp destination routing key
+
+      const bodyAsJSON = JSON.parse(message.body);
+      // Interesting fields in the bodyAsJSON could include applicationId, clientName, correlationId, operation, sendTime
+
       // create a new dom element for the message
       const messageId = `message_${messageCount++}`;
       const treeId = `${messageId}_tree`;
-      const sendDate = new Date(message.sendTime);
+      const sendDate = new Date(bodyAsJSON.sendTime);
       const sendAmPm = sendDate.getHours() > 11 ? 'pm' : 'am';
       const sendHour = sendDate.getHours() > 12 ? sendDate.getHours() - 12 : sendDate.getHours() === 0 ? 12 : sendDate.getHours();      
       const sendTimeString = `${sendHour}:${sendDate.getMinutes()} ${sendAmPm}`;
@@ -122,10 +69,10 @@
       const template = `
         <div class="message">
           <div class="message-header"> 
-            <span class="message-item">Organization: xxx</span>
+            <span class="message-item">Organization: ${organizationId}</span>
             <span class="message-item">Location: ${locationId}</span>
-            <span class="message-item">Domain: ${message.type}</span>
-            <span class="message-item">Operation: ${message.operation}</span>
+            <span class="message-item">Domain: ${domainType}</span>
+            <span class="message-item">Operation: ${operation}</span>
             <span class="message-item">Time: ${(sendTimeString)}</span>
           </div>
           <div id="${treeId}"</div>
@@ -134,8 +81,8 @@
 
       const fragment = document.createRange().createContextualFragment(template);
       document.getElementById('streamApiMessages').append(fragment);
-      
-      jsonView.format(message.payload, `#${treeId}`);
+            
+      jsonView.format(bodyAsJSON.payload, `#${treeId}`);
       // I don't like seeing the tree expanded by default
       document.getElementById(treeId).children[0].children[0].click();      
     }
@@ -146,16 +93,6 @@
 
 
 
-
-
-    // This is where most of the logic in this example lives
-
-    // sandbox and prod
-    //const baseUrl = 'https://prod.hs1api.com';
-
-    // qa
-    const baseUrl = 'https://test.hs1api.com';
-    const apiTokenUrl = `${baseUrl}/oauth/client_credential/accesstoken`;
 
     const connect = async () => {      
       const client_id = document.getElementById('client_id').value;
@@ -172,17 +109,7 @@
         // Normally, the client_id and client_secret will be stored securely on your backend and you will request
         // a stomp connection without that data ever being access in a browser.
 
-        //const { data: stompConfig } = await axios.get(`stomp-creds?client_id=${client_id}&client_secret=${client_secret}`);
-
-        // for debugging on the workstation 01 - just hardcode the stompConfig
-        const stompConfig = {
-          exchanges: "apiConsumers.6777b71e-e631-4167-8177-b1913e0467de",
-          queues: "apiConsumers.6777b71e-e631-4167-8177-b1913e0467de",
-          routingKeys: "*.*.*.*",
-          url: "wss://use2-central-amqp.hs1api.com/ws",
-          user: "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJxdWV1ZXMiOlsiXmFwaUNvbnN1bWVyc1xcLjY3NzdiNzFlLWU2MzEtNDE2Ny04MTc3LWIxOTEzZTA0NjdkZVxcLi4rJCJdLCJyb3V0ZUtleXMiOlsiXlteXFwuXStcXC5bXlxcLl0rXFwuW15cXC5dK1xcLlteXFwuXSskIl0sInNjb3BlIjpbInN0cmVhbS1hcGk6cmVhZCJdLCJleGNoYW5nZXMiOlsiXmFwaUNvbnN1bWVyc1xcLjY3NzdiNzFlLWU2MzEtNDE2Ny04MTc3LWIxOTEzZTA0NjdkZSJdLCJleHAiOjE1OTM2NzExNTUsImlhdCI6MTU5MDA3MTE1NSwianRpIjoiODBkZDM1ZGUtZmJhYy00ZDJjLWI4ZTctZjJhOGVhZjg5ZThlIn0.PHWVHXLiYKSU1RwBD85p9hl1WrlxmoZ7KUbYPW3kbbtqMbCl7xJqysi3Xej72wZuDAxWKlyJay61tSXoQIMdCRTU-6Mj8Dhv4S2isFCeYmgZTykqHtpqVrNURFIOYo5gncPCkxyBHk-H3khyg1Sn1zVBblIOV3Yj5n6CvJvsYRQfg8YfUCIUcqoQj2Rqu1gN5g9nJ8IH3vs7ztwjY8o7zvN8VocRkAH3hZXyr9LCpwZQnqHJLXUNac8w9mKgdCbqcn7xOs8vdz8Zq-QvE2BYjA8uxnsK2Ax4v8VU8ofAn6GRMO5_XhXogbvk2GEs_EVIG0xgV0gX0gY1nTlcpg2zSw",
-          'virtual-host': "central"
-        };
+        const { data: stompConfig } = await axios.get(`stomp-creds?client_id=${client_id}&client_secret=${client_secret}`);
 
         console.log('Stomp config', stompConfig);
         // user is JWT that has all of the credentials / information accessible to your client_id.  You can use jwt.io to inspect it.
@@ -194,15 +121,7 @@
 
         // Now connect to the stream api        
         const client = Stomp.over(new WebSocket(stompConfig.url));
-        //const client = Stomp.over(new WebSocket('wss://use2-central-amqp.hs1api.com/ws'));
-        //const client = Stomp.over(new WebSocket('wss://use2-webstomp-1355782680.us-east-2.elb.amazonaws.com:15673/ws'));
-        //const client = Stomp.over(new WebSocket('wss://use2-central-webstomp.hsps.cloud:15673/ws'));
-        //const client = Stomp.over(new WebSocket('ws://localhost:15674/ws'));
-        //const client = Stomp.over(new WebSocket('wss://use2-central-amqp.hs1api.com:443/ws'));
-        //const client = Stomp.over(new WebSocket('wss://use2-central-webstomp.hsps.cloud:443/ws'));
-        //const client = Stomp.over(new WebSocket('wss://usqa01bl-http-1531936933.us-east-2.elb.amazonaws.com/ws'));
-        //const client = Stomp.over(new WebSocket('wss://qa-us01.dentrixascend.com/ws'));
-
+        
         // In Chrome, you can monitor the activity of the stomp connection in the debugger > Network > WS > Messages tab
         const onConnect = () => {
           appendConnectedMessage();
@@ -218,10 +137,8 @@
           // we will listen to all DomainTypes (*.*.*.*)
 
           client.subscribe(`/exchange/${stompConfig.exchanges}/*.*.*.*`, 
-            (stompMessage) => {
-              console.log('stomp message', stompMessage);
-
-              //appendStreamAPIMessage(locationId, body);
+            (stompMessage) => {              
+              appendStreamAPIMessage(stompMessage);
             },
             {'x-queue-name': queueName});
         };
@@ -231,14 +148,12 @@
             alert('Error in the stream api.  Check console for details.');
         };              
 
-        console.log('pre connect');
         client.connect(stompConfig.user, '', onConnect, onError, stompConfig['virtual-host']);
-        console.log('post connect');
 
         // Debugging all stomp messages is noisy but sometimes very useful
-        client.debug = (str) => {
-          console.log('Stomp debug', str);
-        };
+        // client.debug = (str) => {
+        //   console.log('Stomp debug', str);
+        // };
       }
       catch(err){
         console.error(err);
