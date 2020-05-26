@@ -9,10 +9,15 @@ app.use(express.static('.'));
 app.get('/', (req, res) => res.redirect('example-stomp.html'));
 
 
-// sandbox and prod
-// const baseUrl = 'https://prod.hs1api.com';
-// qa
-const baseUrl = 'https://test.hs1api.com';
+// Example runs in prod / sandbox by default but possible to override to run in QA
+let baseUrl = 'https://prod.hs1api.com';
+
+const args = process.argv.slice(2);
+
+if(args.length > 0 && args[0] === 'qa'){
+  console.log('Running in qa');
+  baseUrl = 'https://test.hs1api.com';
+}
 
 const apiTokenUrl = `${baseUrl}/oauth/client_credential/accesstoken`;
 

@@ -18,12 +18,16 @@ const _ = require('lodash');
 const client_id = 'REPLACE_WITH_YOUR_CLIENT_ID';
 const client_secret = 'REPLACE_WITH_YOUR_CLIENT_ID';
 
+// Example runs in prod / sandbox by default but possible to override to run in QA
+let baseUrl = 'https://prod.hs1api.com';
 
-// sandbox and prod
-//const baseUrl = 'https://prod.hs1api.com';
+const args = process.argv.slice(2);
 
-// qa
-const baseUrl = 'https://test.hs1api.com';
+if(args.length > 0 && args[0] === 'qa'){
+  console.log('Running in qa');
+  baseUrl = 'https://test.hs1api.com';
+}
+
 const apiTokenUrl = `${baseUrl}/oauth/client_credential/accesstoken`;
 
 
@@ -90,7 +94,7 @@ const apiTokenUrl = `${baseUrl}/oauth/client_credential/accesstoken`;
     // You should add a "." with something afterwards to name your queues
     // The names should be reused / consistent through your applications
     // You can only create a single queue with this name - queue names are globally unique (for your account)
-    const queueName = `${queues}.testqueue`;
+    const queueName = `${queues}.testqueue-${Math.random().toString().substring(3, 10)}`;
 
     // Assert the queue into existence
     // The queue in the example below will be deleted as soon as the process stops running
