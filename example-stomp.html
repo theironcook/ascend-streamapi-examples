@@ -30,7 +30,7 @@
   </head>
 
   <script>    
-    // Important stuff starts in the connect function - top code is unimportant formatting
+    // Important stuff starts in the connect function - top code is unimportant formatting for html
 
     function onloaded(){
       // Just tired of typing these in each time
@@ -61,6 +61,25 @@
     }
 
     let messageCount = 0;
+
+    function appendOrganizationsMessage(organizations){      
+      const treeId = `orgs_${messageCount++}_tree`;
+      const template = `
+        <div class="message">
+          <div class="message-header"> 
+            <span class="message-item">Available Organizations</span>
+          </div>
+          <div id="${treeId}"</div>
+        </div>
+      `;
+
+      const fragment = document.createRange().createContextualFragment(template);
+      document.getElementById('streamApiMessages').append(fragment);
+            
+      jsonView.format(organizations, `#${treeId}`);
+      // I don't like seeing the tree expanded by default
+      document.getElementById(treeId).children[0].children[0].click(); 
+    }
 
     function appendStreamAPIMessage(message){
       // Pull out the routing key from the stomp mesage
@@ -105,6 +124,20 @@
     }
 
 
+    // This is just a convenience to see what orgs you have available to your client_id
+    const fetchAvailableOrganizations = async () => {
+      try {
+        const client_id = document.getElementById('client_id').value;
+        const client_secret = document.getElementById('client_secret').value;
+        const { data } = await axios.get(`available-organizations?client_id=${client_id}&client_secret=${client_secret}`);
+
+        console.log('Available organizations', data);
+        appendOrganizationsMessage(data);
+      }
+      catch(err){
+        console.error('Error fetching the linked organizations available to your client_id', err);
+      }
+    }
 
 
     const connect = async () => {      
@@ -158,6 +191,9 @@
               appendStreamAPIMessage(stompMessage);
             },
             {'x-queue-name': queueName});
+
+          // Let's see what organizations are available to your client_id
+          fetchAvailableOrganizations();
         };
         
         const onError = (err) => {
