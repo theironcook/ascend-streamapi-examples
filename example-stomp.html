@@ -67,7 +67,7 @@
       const template = `
         <div class="message">
           <div class="message-header"> 
-            <span class="message-item">Available Organizations</span>
+            <span class="message-item">Available Organizations - you will receive messages for creates, updates and deletes for these orgs.</span>
           </div>
           <div id="${treeId}"</div>
         </div>
@@ -101,8 +101,9 @@
       const template = `
         <div class="message">
           <div class="message-header"> 
-            <span class="message-item">Organization: ${organizationId}</span>
+            <span class="message-item">Organization: ${getOrganizationIdentifier(organizationId)}</span>
             <span class="message-item">Location: ${locationId}</span>
+            <span class="message-item">Author: ${bodyAsJSON.clientName}</span>
             <span class="message-item">Domain: ${domainType}</span>
             <span class="message-item">Operation: ${operation}</span>
             <span class="message-item">Time: ${(sendTimeString)}</span>
@@ -123,6 +124,7 @@
       document.getElementById('streamApiMessages').innerHTML = '';
     }
 
+    let availableOrganizations;
 
     // This is just a convenience to see what orgs you have available to your client_id
     const fetchAvailableOrganizations = async () => {
@@ -131,6 +133,7 @@
         const client_secret = document.getElementById('client_secret').value;
         const { data } = await axios.get(`available-organizations?client_id=${client_id}&client_secret=${client_secret}`);
 
+        availableOrganizations = data;
         console.log('Available organizations', data);
         appendOrganizationsMessage(data);
       }
@@ -138,6 +141,19 @@
         console.error('Error fetching the linked organizations available to your client_id', err);
       }
     }
+
+    function getOrganizationIdentifier(organizationId){
+      if(availableOrganizations){
+        const organization = availableOrganizations.find(org => org.id === organizationId);
+
+        if(organization){
+          return organization.name;
+        }
+      }
+
+      return organizationId;
+    }
+
 
 
     const connect = async () => {      
