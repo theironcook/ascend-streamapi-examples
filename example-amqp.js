@@ -13,7 +13,7 @@ const _ = require('lodash');
 
 // Then open a command line from the the root diretory (where this file is) and type:
 // npm i (assuming you have installed NodeJS)
-// node index.js 
+// node example-amqp.js 
 
 const client_id = 'REPLACE_WITH_YOUR_CLIENT_ID';
 const client_secret = 'REPLACE_WITH_YOUR_CLIENT_ID';
