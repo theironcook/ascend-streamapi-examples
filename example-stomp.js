@@ -82,7 +82,6 @@ app.get('/available-organizations', async (req, res, next) => {
       }));
     }
 
-    console.log('aaa');
     try {
       // Run all promises in parallel but wait for the last one to finish
       await Promise.all(waitPromises);
