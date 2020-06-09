@@ -55,21 +55,24 @@ app.get('/available-organizations', async (req, res, next) => {
     const {access_token} = await fetchAPIToken(apiTokenUrl, req.query.client_id, req.query.client_secret);
     
     // Now use the existing rest api to fetch a new streaming api url for the stomp protocol with secure web sockets
-    const {data: {organizations}} = await axios.get(`${baseUrl}/orgmapper/LinkedOrgs`, {headers: {'Authorization': `Bearer ${access_token}`}});
+    const {data: {organizations: orgIds}} = await axios.get(`${baseUrl}/orgmapper/LinkedOrgs`, {headers: {'Authorization': `Bearer ${access_token}`}});
 
     // Right now, organizations is an array of organization ids that your client_id has access to
 
-    const orgsWithNames = [];
+    const orgsWithNames = {};
+    orgIds.map(orgId => orgsWithNames[orgId] = {});
+
     const waitPromises = [];
     // fetch the organization names in parallel - hopefully less than 1k
     // The LinkedOrgs endpoint only returns the org ids - you need to use the normal API to get the organization names
     // Normally you would probably keep this type of information cached in your own system
-    for(let orgCount = 0; orgCount < organizations.length; orgCount++){
+    for(let orgIdCount = 0; orgIdCount < orgIds.length; orgIdCount++){
+      const orgId = orgIds[orgIdCount];
       waitPromises.push(new Promise(async (resolve, reject) => {
         try {
           const {data: {data}} = await axios.get(`${baseUrl}/ascend-gateway/api/v0/organizations?responseFields=name`, 
-                                          {headers: {'Authorization': `Bearer ${access_token}`, 'Organization-ID': organizations[orgCount]}});          
-          orgsWithNames.push({id: organizations[orgCount], name: data[0].name});
+                                          {headers: {'Authorization': `Bearer ${access_token}`, 'Organization-ID': orgId}});          
+          orgsWithNames[orgId] = {name: data[0].name};
           resolve();
         }
         catch(err){
@@ -79,8 +82,14 @@ app.get('/available-organizations', async (req, res, next) => {
       }));
     }
 
-    // Run all promises in parallel but wait for the last one to finish
-    await Promise.all(waitPromises);
+    console.log('aaa');
+    try {
+      // Run all promises in parallel but wait for the last one to finish
+      await Promise.all(waitPromises);
+    }
+    catch(err){
+      console.error('Failed to load organization names');
+    }
 
     return res.json(orgsWithNames);
   }

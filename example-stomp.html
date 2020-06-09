@@ -143,12 +143,8 @@
     }
 
     function getOrganizationIdentifier(organizationId){
-      if(availableOrganizations){
-        const organization = availableOrganizations.find(org => org.id === organizationId);
-
-        if(organization){
-          return organization.name;
-        }
+      if(availableOrganizations && availableOrganizations[organizationId]){
+        return availableOrganizations[organizationId]['name'] || organizationId;
       }
 
       return organizationId;
