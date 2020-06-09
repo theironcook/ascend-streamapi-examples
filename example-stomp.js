@@ -54,8 +54,8 @@ app.get('/available-organizations', async (req, res, next) => {
     // Normally you should cache/reuse api tokens instead of refetching them
     const {access_token} = await fetchAPIToken(apiTokenUrl, req.query.client_id, req.query.client_secret);
     
-    // Now use the existing rest api to fetch a new streaming api url for the stomp protocol with secure web sockets
-    const {data: {organizations: orgIds}} = await axios.get(`${baseUrl}/orgmapper/LinkedOrgs`, {headers: {'Authorization': `Bearer ${access_token}`}});
+    // Now fetch the orgs your client_id has access to
+    const {data: {organizations}} = await axios.get(`${baseUrl}/orgmapper/LinkedOrgs`, {headers: {'Authorization': `Bearer ${access_token}`}});
 
     // Right now, organizations is an array of organization ids that your client_id has access to
 
