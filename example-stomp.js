@@ -55,22 +55,20 @@ app.get('/available-organizations', async (req, res, next) => {
     const {access_token} = await fetchAPIToken(apiTokenUrl, req.query.client_id, req.query.client_secret);
     
     // Now fetch the orgs your client_id has access to
-    const {data: {organizations}} = await axios.get(`${baseUrl}/orgmapper/LinkedOrgs`, {headers: {'Authorization': `Bearer ${access_token}`}});
-
-    // Right now, organizations is an array of organization ids that your client_id has access to
-
+    const {data: {organizations: orgIds}} = await axios.get(`${baseUrl}/orgmapper/LinkedOrgs`, {headers: {'Authorization': `Bearer ${access_token}`}});
+    // Right now, organizations is an array of organization ids that your client_id has access to    
     const orgsWithNames = {};
     orgIds.map(orgId => orgsWithNames[orgId] = {});
 
     const waitPromises = [];
     // fetch the organization names in parallel - hopefully less than 1k
     // The LinkedOrgs endpoint only returns the org ids - you need to use the normal API to get the organization names
-    // Normally you would probably keep this type of information cached in your own system
+    // Normally you would probably keep this type of information cached in your own system and not refetch it all of the time
     for(let orgIdCount = 0; orgIdCount < orgIds.length; orgIdCount++){
       const orgId = orgIds[orgIdCount];
       waitPromises.push(new Promise(async (resolve, reject) => {
         try {
-          const {data: {data}} = await axios.get(`${baseUrl}/ascend-gateway/api/v0/organizations?responseFields=name`, 
+          const {data: {data}} = await axios.get(`${baseUrl}/ascend-gateway/api/v0/organizations`, 
                                           {headers: {'Authorization': `Bearer ${access_token}`, 'Organization-ID': orgId}});          
           orgsWithNames[orgId] = {name: data[0].name};
           resolve();
@@ -82,7 +80,6 @@ app.get('/available-organizations', async (req, res, next) => {
       }));
     }
 
-    console.log('aaa');
     try {
       // Run all promises in parallel but wait for the last one to finish
       await Promise.all(waitPromises);

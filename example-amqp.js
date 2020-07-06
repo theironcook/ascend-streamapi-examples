@@ -34,6 +34,8 @@ const apiTokenUrl = `${baseUrl}/oauth/client_credential/accesstoken`;
 (async () => {
   try {
 
+    console.log('running with client_id', getConfig('client_id', client_id));
+
     // First get a normal api token just like you're using the normal Ascend Rest API
     const {data: {access_token}} = await axios({
         method: 'POST',
