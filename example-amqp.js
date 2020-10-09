@@ -117,7 +117,7 @@ const apiTokenUrl = `${baseUrl}/oauth/client_credential/accesstoken`;
 
     // In this example, you will only get messages for the OperatoryV1 and PatientV1 domain types
     await channel.bindQueue(queueName, exchanges, '*.*.OperatoryV1.*');
-    await channel.bindQueue(queueName, exchanges, '*.*.PatientV1.*'); // No version means v0 - no version / not versioned
+    await channel.bindQueue(queueName, exchanges, '*.*.PatientV1.*');
 
     // todo - add any other domain types types (with the versions you are using) or you will not recieve those types of updates
 
