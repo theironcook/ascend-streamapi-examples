@@ -115,9 +115,9 @@ const apiTokenUrl = `${baseUrl}/oauth/client_credential/accesstoken`;
     // RabbitMQ topic routing keys follow the pattern: 
     // orgId.locationId.domainType.operationType
 
-    // In this example, you will only get messages for the OperatoryV1 and Patient domain types
+    // In this example, you will only get messages for the OperatoryV1 and PatientV1 domain types
     await channel.bindQueue(queueName, exchanges, '*.*.OperatoryV1.*');
-    await channel.bindQueue(queueName, exchanges, '*.*.Patient.*'); // No version means v0 - no version / not versioned
+    await channel.bindQueue(queueName, exchanges, '*.*.PatientV1.*'); // No version means v0 - no version / not versioned
 
     // todo - add any other domain types types (with the versions you are using) or you will not recieve those types of updates
 
@@ -148,7 +148,7 @@ const apiTokenUrl = `${baseUrl}/oauth/client_credential/accesstoken`;
 
 
     // To see messages flow you will need to create, update or delete data in the Ascend rest api.
-    // The initial example only listens to OperatoryV1 or Patient domain models so you will need to test with those domain
+    // The initial example only listens to OperatoryV1 or PatientV1 domain models so you will need to test with those domain
     // types unless you change the queue bindings
 
     // The simplest way to use the rest api is via https://portal.hs1api.com/ but tools like Postman are easier to use for real development
