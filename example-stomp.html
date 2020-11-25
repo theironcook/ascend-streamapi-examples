@@ -10,8 +10,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.9.4/qs.min.js"></script>    
     <script src="libs/jsonview.js"></script>
 
-    <!-- There are a few options to run stomp in a browser.  This libary is old but simple and reliable -->
-    <script src="libs/stomp.min.js"></script>
+    <!-- This stomp client works fairly well for browsers -->
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@6.0.0/bundles/stomp.umd.min.js"></script>
 
     <style>
       .message {
@@ -181,44 +181,54 @@
         // exchanges - the rabbitmq exchanges you have access to
         // routingKeys - the rabbitmq routing keys you have access to for bindings between exchanges and queues
 
-        // Now connect to the stream api        
-        const client = Stomp.over(new WebSocket(stompConfig.url));
-        
+        // Now connect to the stream api.  Set up a client connection and then activate it below        
+        const client = new StompJs.Client({
+            brokerURL: stompConfig.url,
+            connectHeaders: {
+                login: stompConfig.user,
+                host: stompConfig['virtual-host']
+            },
+            heartbeatIncoming: 10000,
+            heartbeatOutgoing: 10000
+        });
+
         // In Chrome, you can monitor the activity of the stomp connection in the debugger > Network > WS > Messages tab
-        const onConnect = () => {
+        client.onConnect = () => {
           appendConnectedMessage();
-          // Now that you are connectected, create an queue to listen to            
+          // Now that you are connected, create an queue to listen to            
           // In a browser, it's smart to always attach a random id to the end of a queue because we normally only use exclusive, auto-delete
           // queues in browsers.  If you didn't have a random number, and you refreshed the browser, you could not reattach to the queue
           // queues should be globally unique (per your client_id)            
           const queueName = `${stompConfig.queues}.testqueue-${randomString()}`;
+          
+          const stompMessageHandler = (stompMessage) => {              
+            appendStreamAPIMessage(stompMessage);
+          };
+
+          // durable: means that messages are persisted to disk in case of a rabbit failure
+          // autoDelete: the queue will be deleted when the browser is closed 
+          // exclusive: only this active browser's thread can access the queueu
+          const stompOptions = {'x-queue-name': queueName, durable: false, autoDelete: true, exclusive: true};
 
           // Routing keys in the ascend stream api follow a pattern of *.*.*.*
           // OrgId.LocationId.DomainType.Operation
-          // For normal stream api consumers we want to limit the number of domains we're listening to but to make this example simple
-          // we will listen to all DomainTypes (*.*.*.*)
+          client.subscribe(`/exchange/${stompConfig.exchanges}/*.*.AppointmentV1.*`, stompMessageHandler, stompOptions);
+          client.subscribe(`/exchange/${stompConfig.exchanges}/*.*.PatientV1.*`, stompMessageHandler, stompOptions);
 
-          client.subscribe(`/exchange/${stompConfig.exchanges}/*.*.*.*`, 
-            (stompMessage) => {              
-              appendStreamAPIMessage(stompMessage);
-            },
-            {'x-queue-name': queueName});
+          // In this example, you will only see AppointmentV1 and PatientV1 flow through the queue for all orgs and locations your
+          // client_id has access to.  Normally, you want to explicitly choose what kind of data you want to listen to or
+          // you will see every single domain model flow which can be very wasteful
 
           // Let's see what organizations are available to your client_id
           fetchAvailableOrganizations();
         };
         
-        const onError = (err) => {
+        client.onStompError = (err) => {
             console.error(err);
             alert('Error in the stream api.  Check console for details.');
         };              
 
-        client.connect(stompConfig.user, '', onConnect, onError, stompConfig['virtual-host']);
-
-        // Debugging all stomp messages is noisy but sometimes very useful
-        client.debug = (str) => {
-          // console.log('Stomp debug', str);
-        };
+        client.activate();
       }
       catch(err){
         console.error(err);
