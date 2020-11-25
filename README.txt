@@ -9,7 +9,11 @@ https://www.rabbitmq.com/devtools.html
 RabbitMQ can expose several protocols as well. 
 The Ascend API exposes secure AMQP and the STOMP protocol over secure web sockets.
 STOMP is typically for client side / browser applications but it can also be used
-for backend implementations as well.
+for backend implementations as well.  If you use STOMP in a browser, never share
+your client_id and client_secret with your browser code like the simple example code.
+Always keep your credentials safe and negotiate stream api urls from your safe
+server side code.  Fetch stream api urls from your safe server code and pass the
+stream api url credentials to your insecure browser client.
 
 
 To run either example, first install all required dependencies.
